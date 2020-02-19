@@ -1,0 +1,86 @@
+{% extends 'layout.html' %}
+
+{% block body %}
+  <div id="content">
+    <div class="row">
+      <div class="col-md-10 offset-md-1">
+        <form action="{{ url_for('getData') }}" method="POST" class="form-inline data-form" style="min-width: 35%;">
+          {{ dataForm.hidden_tag() }}
+          <div class="form-group">
+              {{ dataForm.search(class="form-control", placeholder="LeBron James, Kevin Durant, James Harden, ...", style="width: 75%; margin-right: 10px;") }}
+              {{ dataForm.scrapeSubmit(class="btn btn-primary") }}
+          </div>
+          <div class="form-group">
+            {#{{ dataForm.saveSubmit(class="btn btn-warning") }}#}
+          </div>
+        </form>
+      </div>
+    </div>
+    <div class="row">
+      <div class="col-md-10 offset-md-1">
+        <form class="form-inline data-form" action="{{ url_for('clearSession') }}" method="POST">
+          <div class="form-group">
+            {{ sessionForm.clear(class="btn btn-danger") }}
+          </div>
+        </form>
+      </div>
+    </div>
+    <div class="row">
+      <div class="col-md-10 offset-md-1">
+        <form class="form-inline data-form" action="{{ url_for('setCronjob') }}" method="POST">
+          <div class="form-group">
+            {{ cronjobForm.submit(class="btn btn-success") }}
+          </div>
+        </form>
+      </div>
+    </div>
+    {% if data %}
+      <div class="row">
+        <div class="col-md-10 offset-md-1">
+          <table class="table table-fixed table-striped">
+            <thead class="thead-inverse">
+              <tr>
+                <th>NAME</th>
+                <th>TEAM</th>
+                <th>POS</th>
+                <th>AGE</th>
+                <th>GP</th>
+                <th>MPG</th>
+                <th>FTA</th>
+                <th>FT%</th>
+                <th>2PA</th>
+                <th>2P%</th>
+                <th>3PA</th>
+                <th>3P%</th>
+                <th>PPG</th>
+                <th>RPG</th>
+                <th>APG</th>
+                <th>SPG</th>
+                <th>BPG</th>
+                <th>TOPG</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for row in data %}
+                <tr>
+                  {% for i in row %}
+                    <td>{{ i }}</td>
+                  {% endfor %}
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div class="row">
+        <div class="col-md-10 offset-md-1">
+          <form class="form-inline data-form" action="{{ url_for('toCSV') }}" method="POST">
+            <div class="form-group">
+              {{ csvForm.saveToCSV(class="btn btn-info") }}
+            </div>
+          </form>
+        </div>
+      </div>
+    {% endif %}
+  </div>
+{% endblock %}
