@@ -1,10 +1,11 @@
-from app import app
 import requests, csv, os
-from flask import render_template, flash, redirect, url_for, session
-from bs4 import BeautifulSoup
+from app import app, db
+from app import selenium
 from app.datascraper import cleanData
 from app.forms import DataForm, SessionForm, CSVForm, CronjobForm
-from app import selenium
+from app.models import Record
+from flask import render_template, flash, redirect, url_for, session, jsonify
+from bs4 import BeautifulSoup
 from datetime import datetime
 
 @app.route('/')
@@ -44,12 +45,38 @@ def toCSV():
     row_list = ["NAME", "TEAM", "POS", "AGE", "GP", "MPG", "FTA", "FT%", "2PA", "2P%", "3PA", "3P%", "PPG", "RPG",
                 "APG", "SPG", "BPG", "TOPG"]
     csv_list = [row_list]
-    for i in session.get('data'):
-        csv_list.append(i)
+    for list_ in session.get('data'):
+        csv_list.append(list_)
+
+        record = None
+        for index, value in enumerate(list_):
+            record = Record(
+                name=list_[0],
+                team=list_[1],
+                pos=list_[2],
+                age=list_[3],
+                gp=list_[4],
+                mpg=list_[5],
+                fta=list_[6],
+                ftp=list_[7],
+                twpa=list_[8],
+                twpp=float(list_[9]), 
+                thpa=list_[10],
+                thpp=float(list_[11]),
+                ppg=float(list_[12]),
+                rpg=float(list_[13]),
+                apg=float(list_[14]),
+                spg=float(list_[15]),
+                bpg=float(list_[16]),
+                topg=float(list_[17])
+            )
+        db.session.add(record)
+        db.session.commit()
     with open(os.path.join(os.path.dirname(__file__), f'{datetime.utcnow().strftime("%m%d%Y%H%M%S")}.csv'), 'w', newline='') as f:
         writer = csv.writer(f)
         writer.writerows(csv_list)
     session.clear()
+    flash("Saved to database", "info")
     flash("Information saved to CSV file", "success")
     return redirect(url_for('index'))
 
@@ -57,5 +84,15 @@ def toCSV():
 @app.route('/setCronjob', methods=['POST'])
 def setCronjob():
     selenium.execute()
-    flash("Cronjob Dpdated", "success")
+    flash("Cronjob Updated", "success")
     return redirect(url_for('index'))
+
+@app.route('/records/<int:id>', methods=['GET'])
+def get_record(id):
+    return jsonify(Record.query.get(id).to_dict())
+
+@app.route('/records', methods=['GET'])
+def get_records():
+    data = [i.to_dict() for i in Record.query.all()]
+    return jsonify(data)
+
